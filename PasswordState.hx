@@ -57,17 +57,18 @@ class PasswordState extends MusicBeatState
 
         if (!sys.FileSystem.exists(Paths.json('passwords')))
         {
-            var hashedPassword:String = Sha256.make("default");
+            var hashedPassword:String = Sha256.encode("default");
             var encodedSong:String = "tutorial";
-
+            
             var defaultPasswords:Array<Passwords> = [{password: hashedPassword, song: encodedSong}];
             var defaultJson:String = haxe.Json.stringify(defaultPasswords); 
-            File.saveContent(Paths.json('passwords'), defaultJson);
+            File.saveContent(Paths.json('passwords'), haxe.io.Bytes.ofString(defaultJson).toString());
         }
-
-        var jsonData:String = File.getContent(Paths.json('passwords'));
+            
+        var jsonData:String = File.getContent(Paths.json('passwords')).toString();
         var parsedPasswords:Array<Dynamic> = haxe.Json.parse(jsonData);
         source = [];
+            
 
         for (p in parsedPasswords)
         {
@@ -122,7 +123,7 @@ class PasswordState extends MusicBeatState
     function onButtonKey()
     {
         var enteredPassword:String = inputKey.text;
-        var hashedEnteredPassword:String = Sha256.make(enteredPassword);
+        var hashedEnteredPassword:String = Sha256.encode(enteredPassword);
 
         for (passwords in source)
         {
@@ -207,24 +208,25 @@ class PasswordDebugMenuState extends MusicBeatState
     }
 
     function tryEncodeJson():Void
-    {
-        try
         {
-            var hashedPassword:String = Sha256.make(passwordInput.text);
-            var song:String = songInput.text;
-            var newPassword:Passwords = {password: hashedPassword, song: song};
-            source.push(newPassword);
-
-            var jsonData = TJSON.encode(source);
-            File.saveContent(Paths.json('passwords'), jsonData);
-
-            passwordInput.text = "";
-            songInput.text = "";
-            statusText.text = "Password and song saved!";
+            try
+            {
+                var hashedPassword:String = Sha256.encode(passwordInput.text);
+                var song:String = songInput.text;
+                var newPassword:Passwords = {password: hashedPassword, song: song};
+                source.push(newPassword);
+        
+                var jsonData = TJSON.encode(source);
+                File.saveContent(Paths.json('passwords'), haxe.io.Bytes.ofString(jsonData).toString());
+        
+                passwordInput.text = "";
+                songInput.text = "";
+                statusText.text = "Password and song saved!";
+            }
+            catch (error:Dynamic)
+            {
+                statusText.text = "Error saving password: " + error;
+            }
         }
-        catch (error:Dynamic)
-        {
-            statusText.text = "Error saving password: " + error;
-        }
-    } 
+         
 }
